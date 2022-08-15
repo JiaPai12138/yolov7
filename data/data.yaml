@@ -1,0 +1,5 @@
+train: ./data/yolo5/train/images/
+val: ./data/yolo5/valid/images/
+
+nc: 2
+names: ['head', 'body']
