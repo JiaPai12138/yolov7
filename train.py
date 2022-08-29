@@ -333,6 +333,13 @@ def train(hyp, opt, device, tb_writer=None):
         if rank in [-1, 0]:
             pbar = tqdm(pbar, total=nb)  # progress bar
         optimizer.zero_grad()
+
+        # 最后20轮关闭数据增强
+        is_disable_augment = epochs - epoch <= 20
+        if is_disable_augment:
+            dataset.is_finetune.value = True
+            opt.multi_scale = False
+
         for i, (imgs, targets, paths, _) in pbar:  # batch -------------------------------------------------------------
             ni = i + nb * epoch  # number integrated batches (since train start)
             imgs = imgs.to(device, non_blocking=True).float() / 255.0  # uint8 to float32, 0-255 to 0.0-1.0

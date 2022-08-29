@@ -29,6 +29,7 @@ from torchvision.ops import roi_pool, roi_align, ps_roi_pool, ps_roi_align
 from utils.general import check_requirements, xyxy2xywh, xywh2xyxy, xywhn2xyxy, xyn2xy, segment2box, segments2boxes, \
     resample_segments, clean_str
 from utils.torch_utils import torch_distributed_zero_first
+from .SharedArray import full
 
 # Parameters
 help_url = 'https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data'
@@ -356,6 +357,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         self.img_size = img_size
         self.augment = augment
         self.hyp = hyp
+        self.is_finetune = full(1, 0, int)
         self.image_weights = image_weights
         self.rect = False if image_weights else rect
         self.mosaic = self.augment and not self.rect  # load 4 images at a time into a mosaic (only during training)
@@ -536,6 +538,10 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
 
         hyp = self.hyp
         mosaic = self.mosaic and random.random() < hyp['mosaic']
+        if self.is_finetune.value:
+            mosaic = False
+            self.mosaic = False
+            self.augment = False
         if mosaic:
             # Load mosaic
             if random.random() < 0.8:
