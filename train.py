@@ -338,7 +338,7 @@ def train(hyp, opt, device, tb_writer=None):
         is_disable_augment = epochs - epoch <= 20
         if is_disable_augment:
             dataset.is_finetune.value = True
-            opt.multi_scale = False
+            # opt.multi_scale = False
 
         for i, (imgs, targets, paths, _) in pbar:  # batch -------------------------------------------------------------
             ni = i + nb * epoch  # number integrated batches (since train start)
