@@ -1,7 +1,7 @@
 # parameters
 nc: 2  # number of classes
-depth_multiple: 0.67  # model depth multiple
-width_multiple: 0.75  # layer channel multiple
+depth_multiple: 1.00  # model depth multiple
+width_multiple: 1.00  # layer channel multiple
 
 # anchors
 anchors:
@@ -14,7 +14,7 @@ backbone:
   # [from, number, module, args]
   [[-1, 1, Conv, [32, 6, 2, 2]],  # 0-P1/2
   
-   [-1, 1, Conv, [64, 3, 2]],  # 1-P2/4
+   [-1, 1, Conv, [64, 6, 2, 2]],  # 1-P2/4
    
    [-1, 1, Conv, [32, 1, 1]],
    [-2, 1, Conv, [32, 1, 1]],
