@@ -1,7 +1,7 @@
 # parameters
 nc: 2  # number of classes
-depth_multiple: 0.67  # model depth multiple
-width_multiple: 0.75  # layer channel multiple
+depth_multiple: 0.33  # model depth multiple
+width_multiple: 0.50  # layer channel multiple
 
 # anchors
 anchors:
@@ -12,9 +12,9 @@ anchors:
 # yolov7-tiny backbone
 backbone:
   # [from, number, module, args] c2, k=1, s=1, p=None, g=1, act=True
-  [[-1, 1, Conv, [32, 6, 2, 2, 1, nn.LeakyReLU(0.1)]],  # 0-P1/2  
+  [[-1, 1, Conv, [32, 6, 2, 2, 1, nn.LeakyReLU(0.1)]],  # 0-P1/2
   
-   [-1, 1, Conv, [64, 3, 2, None, 1, nn.LeakyReLU(0.1)]],  # 1-P2/4    
+   [-1, 1, Conv, [64, 3, 2, None, 1, nn.LeakyReLU(0.1)]],  # 1-P2/4
    
    [-1, 1, Conv, [32, 1, 1, None, 1, nn.LeakyReLU(0.1)]],
    [-2, 1, Conv, [32, 1, 1, None, 1, nn.LeakyReLU(0.1)]],
