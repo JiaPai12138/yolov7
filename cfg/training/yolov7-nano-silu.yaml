@@ -1,7 +1,7 @@
 # parameters
 nc: 2  # number of classes
-depth_multiple: 0.667  # model depth multiple
-width_multiple: 0.75  # layer channel multiple
+depth_multiple: 0.33  # model depth multiple
+width_multiple: 0.50  # layer channel multiple
 
 # anchors
 anchors:
@@ -84,7 +84,7 @@ head:
    [[-1, -2, -3, -4], 1, Concat, [1]],
    [-1, 1, Conv, [64, 1, 1]],  # 57
    
-   [-1, 1, Conv, [128, 3, 2]],
+   [-1, 1, Conv, [128, 6, 2, 2]],
    [[-1, 47], 1, Concat, [1]],
    
    [-1, 1, Conv, [64, 1, 1]],
@@ -94,7 +94,7 @@ head:
    [[-1, -2, -3, -4], 1, Concat, [1]],
    [-1, 1, Conv, [128, 1, 1]],  # 65
    
-   [-1, 1, Conv, [256, 3, 2]],
+   [-1, 1, Conv, [256, 6, 2, 2]],
    [[-1, 37], 1, Concat, [1]],
    
    [-1, 1, Conv, [128, 1, 1]],
