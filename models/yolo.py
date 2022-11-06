@@ -706,6 +706,30 @@ class Model(nn.Module):
             elif isinstance(m, (IDetect, IAuxDetect)):
                 m.fuse()
                 m.forward = m.fuseforward
+            elif type(m) is RepVGGBlock:
+                if hasattr(m, 'rbr_1x1'):
+                    # print(m)
+                    kernel, bias = m.get_equivalent_kernel_bias()
+                    rbr_reparam = nn.Conv2d(in_channels=m.rbr_dense.conv.in_channels,
+                                            out_channels=m.rbr_dense.conv.out_channels,
+                                            kernel_size=m.rbr_dense.conv.kernel_size,
+                                            stride=m.rbr_dense.conv.stride,
+                                            padding=m.rbr_dense.conv.padding, dilation=m.rbr_dense.conv.dilation,
+                                            groups=m.rbr_dense.conv.groups, bias=True)
+                    rbr_reparam.weight.data = kernel
+                    rbr_reparam.bias.data = bias
+                    for para in self.parameters():
+                        para.detach_()
+                    m.rbr_dense = rbr_reparam
+                    # m.__delattr__('rbr_dense')
+                    m.__delattr__('rbr_1x1')
+                    if hasattr(self, 'rbr_identity'):
+                        m.__delattr__('rbr_identity')
+                    if hasattr(self, 'id_tensor'):
+                        m.__delattr__('id_tensor')
+                    m.deploy = True
+                    delattr(m, 'se')
+                    m.forward = m.fusevggforward  # update forward
         self.info()
         return self
 
@@ -760,7 +784,7 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
                  RepResX, RepResXCSPA, RepResXCSPB, RepResXCSPC, 
                  Ghost, GhostCSPA, GhostCSPB, GhostCSPC,
                  SwinTransformerBlock, STCSPA, STCSPB, STCSPC,
-                 SwinTransformer2Block, ST2CSPA, ST2CSPB, ST2CSPC]:
+                 SwinTransformer2Block, ST2CSPA, ST2CSPB, ST2CSPC, C3C2, RepVGGBlock]:
             c1, c2 = ch[f], args[0]
             if c2 != no:  # if not output
                 c2 = make_divisible(c2 * gw, 8)
@@ -775,7 +799,7 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
                      RepResXCSPA, RepResXCSPB, RepResXCSPC,
                      GhostCSPA, GhostCSPB, GhostCSPC,
                      STCSPA, STCSPB, STCSPC,
-                     ST2CSPA, ST2CSPB, ST2CSPC]:
+                     ST2CSPA, ST2CSPB, ST2CSPC, C3C2]:
                 args.insert(2, n)  # number of repeats
                 n = 1
         elif m is nn.BatchNorm2d:

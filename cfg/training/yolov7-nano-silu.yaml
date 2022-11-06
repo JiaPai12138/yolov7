@@ -12,7 +12,7 @@ anchors:
 # YOLOv7-tiny backbone
 backbone:
   # [from, number, module, args]
-  [[-1, 1, Conv, [32, 6, 2, 2]],  # 0-P1/2
+  [[-1, 1, Conv, [32, 3, 2]],  # 0-P1/2
   
    [-1, 1, Conv, [64, 3, 2]],  # 1-P2/4
    
