@@ -109,7 +109,7 @@ class Conv(nn.Module):
 
     def fuseforward(self, x):
         return self.act(self.conv(x))
-    
+
 
 class RobustConv(nn.Module):
     # Robust convolution (use high kernel size 7-11 for: downsampling and other layers). Train for 300 - 450 epochs.
@@ -2191,9 +2191,10 @@ class CA(nn.Module):
 
         mip = max(8, inp // reduction)
 
-        self.conv1 = nn.Conv2d(inp, mip, kernel_size=1, stride=1, padding=0)
-        self.bn1 = nn.BatchNorm2d(mip)
-        self.act = h_swish()
+        # self.conv1 = nn.Conv2d(inp, mip, kernel_size=1, stride=1, padding=0)
+        # self.bn1 = nn.BatchNorm2d(mip)
+        # self.act = h_swish()
+        self.conv = Conv(inp, mip, kernel_size=1, stride=1, padding=0)
 
         self.conv_h = nn.Conv2d(mip, oup, kernel_size=1, stride=1, padding=0)
         self.conv_w = nn.Conv2d(mip, oup, kernel_size=1, stride=1, padding=0)
@@ -2209,9 +2210,10 @@ class CA(nn.Module):
         x_w = pool_w(x).permute(0, 1, 3, 2)
 
         y = torch.cat([x_h, x_w], dim=2)
-        y = self.conv1(y)
-        y = self.bn1(y)
-        y = self.act(y)
+        # y = self.conv1(y)
+        # y = self.bn1(y)
+        # y = self.act(y)
+        y = self.conv(y)
 
         x_h, x_w = torch.split(y, [h, w], dim=2)
         x_w = x_w.permute(0, 1, 3, 2)
