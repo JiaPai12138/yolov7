@@ -123,7 +123,7 @@ class RobustConv(nn.Module):
         x = x.to(memory_format=torch.channels_last)
         x = self.conv1x1(self.conv_dw(x))
         if self.gamma is not None:
-            x = x.mul(self.gamma.reshape(1, -1, 1, 1)) 
+            x = x.mul(self.gamma.reshape(1, -1, 1, 1))
         return x
 
 
@@ -140,9 +140,9 @@ class RobustConv2(nn.Module):
     def forward(self, x):
         x = self.conv_deconv(self.conv_strided(x))
         if self.gamma is not None:
-            x = x.mul(self.gamma.reshape(1, -1, 1, 1)) 
+            x = x.mul(self.gamma.reshape(1, -1, 1, 1))
         return x
-    
+
 
 def DWConv(c1, c2, k=1, s=1, act=True):
     # Depthwise convolution
@@ -318,7 +318,7 @@ class GhostStem(Stem):
         self.cv2 = GhostConv(c_, c_, 1, 1)
         self.cv3 = GhostConv(c_, c_, 3, 2)
         self.cv4 = GhostConv(2 * c_, c2, 1, 1)
-        
+
 
 class BottleneckCSPA(nn.Module):
     # CSP https://github.com/WongKinYiu/CrossStagePartialNetworks
@@ -457,7 +457,7 @@ class ImplicitA(nn.Module):
 
     def forward(self, x):
         return self.implicit + x
-    
+
 
 class ImplicitM(nn.Module):
     def __init__(self, channel, mean=1., std=.02):
@@ -470,7 +470,7 @@ class ImplicitM(nn.Module):
 
     def forward(self, x):
         return self.implicit * x
-    
+
 ##### end of yolor #####
 
 
@@ -521,7 +521,7 @@ class RepConv(nn.Module):
             id_out = self.rbr_identity(inputs)
 
         return self.act(self.rbr_dense(inputs) + self.rbr_1x1(inputs) + id_out)
-    
+
     def get_equivalent_kernel_bias(self):
         kernel3x3, bias3x3 = self._fuse_bn_tensor(self.rbr_dense)
         kernel1x1, bias1x1 = self._fuse_bn_tensor(self.rbr_1x1)
@@ -597,17 +597,17 @@ class RepConv(nn.Module):
         conv.bias = torch.nn.Parameter(bias)
         return conv
 
-    def fuse_repvgg_block(self):    
+    def fuse_repvgg_block(self):
         if self.deploy:
             return
         print(f"RepConv.fuse_repvgg_block")
-                
+
         self.rbr_dense = self.fuse_conv_bn(self.rbr_dense[0], self.rbr_dense[1])
-        
+
         self.rbr_1x1 = self.fuse_conv_bn(self.rbr_1x1[0], self.rbr_1x1[1])
         rbr_1x1_bias = self.rbr_1x1.bias
         weight_1x1_expanded = torch.nn.functional.pad(self.rbr_1x1.weight, [1, 1, 1, 1])
-        
+
         # Fuse self.rbr_identity
         if (isinstance(self.rbr_identity, nn.BatchNorm2d) or isinstance(self.rbr_identity, nn.modules.batchnorm.SyncBatchNorm)):
             # print(f"fuse: rbr_identity == BatchNorm2d or SyncBatchNorm")
@@ -617,7 +617,7 @@ class RepConv(nn.Module):
                     kernel_size=1,
                     stride=1,
                     padding=0,
-                    groups=self.groups, 
+                    groups=self.groups,
                     bias=False)
             identity_conv_1x1.weight.data = identity_conv_1x1.weight.data.to(self.rbr_1x1.weight.data.device)
             identity_conv_1x1.weight.data = identity_conv_1x1.weight.data.squeeze().squeeze()
@@ -629,12 +629,12 @@ class RepConv(nn.Module):
 
             identity_conv_1x1 = self.fuse_conv_bn(identity_conv_1x1, self.rbr_identity)
             bias_identity_expanded = identity_conv_1x1.bias
-            weight_identity_expanded = torch.nn.functional.pad(identity_conv_1x1.weight, [1, 1, 1, 1])            
+            weight_identity_expanded = torch.nn.functional.pad(identity_conv_1x1.weight, [1, 1, 1, 1])
         else:
             # print(f"fuse: rbr_identity != BatchNorm2d, rbr_identity = {self.rbr_identity}")
             bias_identity_expanded = torch.nn.Parameter( torch.zeros_like(rbr_1x1_bias) )
-            weight_identity_expanded = torch.nn.Parameter( torch.zeros_like(weight_1x1_expanded) )            
-        
+            weight_identity_expanded = torch.nn.Parameter( torch.zeros_like(weight_1x1_expanded) )
+
 
         #print(f"self.rbr_1x1.weight = {self.rbr_1x1.weight.shape}, ")
         #print(f"weight_1x1_expanded = {weight_1x1_expanded.shape}, ")
@@ -642,7 +642,7 @@ class RepConv(nn.Module):
 
         self.rbr_dense.weight = torch.nn.Parameter(self.rbr_dense.weight + weight_1x1_expanded + weight_identity_expanded)
         self.rbr_dense.bias = torch.nn.Parameter(self.rbr_dense.bias + rbr_1x1_bias + bias_identity_expanded)
-                
+
         self.rbr_reparam = self.rbr_dense
         self.deploy = True
 
@@ -1188,7 +1188,7 @@ class OREPA_3x3_RepConv(nn.Module):
         weight_rbr_origin = torch.einsum('oihw,o->oihw', self.weight_rbr_origin, self.vector[0, :])
 
         weight_rbr_avg = torch.einsum('oihw,o->oihw', torch.einsum('oihw,hw->oihw', self.weight_rbr_avg_conv, self.weight_rbr_avg_avg), self.vector[1, :])
-        
+
         weight_rbr_pfir = torch.einsum('oihw,o->oihw', torch.einsum('oihw,ohw->oihw', self.weight_rbr_pfir_conv, self.weight_rbr_prior), self.vector[2, :])
 
         weight_rbr_1x1_kxk_conv1 = None
@@ -1213,21 +1213,21 @@ class OREPA_3x3_RepConv(nn.Module):
         weight_rbr_1x1_kxk = torch.einsum('oihw,o->oihw', weight_rbr_1x1_kxk, self.vector[3, :])
 
         weight_rbr_gconv = self.dwsc2full(self.weight_rbr_gconv_dw, self.weight_rbr_gconv_pw, self.in_channels)
-        weight_rbr_gconv = torch.einsum('oihw,o->oihw', weight_rbr_gconv, self.vector[4, :])    
+        weight_rbr_gconv = torch.einsum('oihw,o->oihw', weight_rbr_gconv, self.vector[4, :])
 
         weight = weight_rbr_origin + weight_rbr_avg + weight_rbr_1x1_kxk + weight_rbr_pfir + weight_rbr_gconv
 
         return weight
 
     def dwsc2full(self, weight_dw, weight_pw, groups):
-        
+
         t, ig, h, w = weight_dw.size()
         o, _, _, _ = weight_pw.size()
         tg = int(t/groups)
         i = int(ig*groups)
         weight_dw = weight_dw.view(groups, tg, ig, h, w)
         weight_pw = weight_pw.squeeze().view(o, groups, tg)
-        
+
         weight_dsc = torch.einsum('gtihw,ogt->ogihw', weight_dw, weight_pw)
         return weight_dsc.view(o, i, h, w)
 
@@ -1373,13 +1373,13 @@ class RepConv_OREPA(nn.Module):
         self.__delattr__('rbr_dense')
         self.__delattr__('rbr_1x1')
         if hasattr(self, 'rbr_identity'):
-            self.__delattr__('rbr_identity') 
+            self.__delattr__('rbr_identity')
 
 ##### end of orepa #####
 
 
-##### swin transformer #####    
-    
+##### swin transformer #####
+
 class WindowAttention(nn.Module):
 
     def __init__(self, dim, window_size, num_heads, qkv_bias=True, qk_scale=None, attn_drop=0., proj_drop=0.):
@@ -1478,7 +1478,7 @@ def window_partition(x, window_size):
     return windows
 
 def window_reverse(windows, window_size, H, W):
-    
+
     B = int(windows.shape[0] / (H * W / window_size / window_size))
     x = windows.view(B, H // window_size, W // window_size, window_size, window_size, -1)
     x = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(B, H, W, -1)
@@ -1670,11 +1670,11 @@ class STCSPC(nn.Module):
         y2 = self.cv2(x)
         return self.cv4(torch.cat((y1, y2), dim=1))
 
-##### end of swin transformer #####   
+##### end of swin transformer #####
 
 
-##### swin transformer v2 ##### 
-  
+##### swin transformer v2 #####
+
 class WindowAttention_v2(nn.Module):
 
     def __init__(self, dim, window_size, num_heads, qkv_bias=True, attn_drop=0., proj_drop=0.,
@@ -1737,7 +1737,7 @@ class WindowAttention_v2(nn.Module):
         self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, x, mask=None):
-        
+
         B_, N, C = x.shape
         qkv_bias = None
         if self.q_bias is not None:
@@ -1772,7 +1772,7 @@ class WindowAttention_v2(nn.Module):
             x = (attn @ v).transpose(1, 2).reshape(B_, N, C)
         except:
             x = (attn.half() @ v).transpose(1, 2).reshape(B_, N, C)
-            
+
         x = self.proj(x)
         x = self.proj_drop(x)
         return x
@@ -1793,7 +1793,7 @@ class WindowAttention_v2(nn.Module):
         # x = self.proj(x)
         flops += N * self.dim * self.dim
         return flops
-    
+
 class Mlp_v2(nn.Module):
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.SiLU, drop=0.):
         super().__init__()
@@ -1814,7 +1814,7 @@ class Mlp_v2(nn.Module):
 
 
 def window_partition_v2(x, window_size):
-    
+
     B, H, W, C = x.shape
     x = x.view(B, H // window_size, window_size, W // window_size, window_size, C)
     windows = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(-1, window_size, window_size, C)
@@ -1822,7 +1822,7 @@ def window_partition_v2(x, window_size):
 
 
 def window_reverse_v2(windows, window_size, H, W):
-    
+
     B = int(windows.shape[0] / (H * W / window_size / window_size))
     x = windows.view(B, H // window_size, W // window_size, window_size, window_size, -1)
     x = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(B, H, W, -1)
@@ -1934,7 +1934,7 @@ class SwinTransformerLayer_v2(nn.Module):
         # FFN
         x = x + self.drop_path(self.norm2(self.mlp(x)))
         x = x.permute(0, 2, 1).contiguous().view(-1, C, H, W)  # b c h w
-        
+
         if Padding:
             x = x[:, :, :H_, :W_]  # reverse padding
 
